@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+# import pdb
 import torch.utils.data as data
 import torch
 from myconfig import cfg
@@ -45,10 +45,15 @@ class Fashion_attr_prediction(data.Dataset):
         partition_pairs = self.read_lines(list_eval_partition)
         category_img_pairs = self.read_lines(list_category_img)
         attr_img_pairs = self.read_lines(list_attr_img)
+        # pdb.set_trace()
         for k, v in category_img_pairs:
+            #try:
             v = int(v)
+            #except:
+                #continue
             if v <= cfg.CATEGORIES:
                 self.category[k] = v - 1
+
         for k, v in partition_pairs:
             if k in self.category:
                 if v == "train":
@@ -57,10 +62,11 @@ class Fashion_attr_prediction(data.Dataset):
                 else:
                     # Test and Val
                     self.test_list.append(k)
+
         for pair in attr_img_pairs:
             k=pair[0]
             if k in self.category:
-                v=list(map(lambda x: 0 if x!='1' else 1,pair[1:]))
+                v=list(map(lambda x: -1 if x!='1' else 1, pair[1:]))
                 self.attr[k] = torch.from_numpy(np.asarray(v))
         self.all_list = self.test_list + self.train_list
         random.shuffle(self.train_list)

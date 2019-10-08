@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import pdb
 import torch
 import random
 import torch.nn as nn
@@ -49,8 +49,8 @@ if cfg.ENABLE_INSHOP_DATASET:
         batch_size=cfg.TRIPLET_BATCH_SIZE, num_workers=cfg.NUM_WORKERS, pin_memory=True
     )
 
-#model = f_model(freeze_param=cfg.FREEZE_PARAM, model_path=cfg.DUMPED_MODEL).cuda(cfg.GPU_ID)
-model = f_model(freeze_param=cfg.FREEZE_PARAM).cuda(cfg.GPU_ID)
+#model = f_model(freeze_param=cfg.FREEZE_PARAM, model_path=cfg.DUMPED_MODEL).cpu()
+model = f_model(freeze_param=cfg.FREEZE_PARAM).cpu()
 optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=cfg.LR, momentum=cfg.MOMENTUM)
 
 
@@ -59,10 +59,11 @@ def train(epoch):
     model.train()
     criterion_c = nn.CrossEntropyLoss()
     criterion_a = nn.MultiLabelSoftMarginLoss()
-    if cfg.ENABLE_TRIPLET_WITH_COSINE:
-        criterion_t = cfg.TripletMarginLossCosine()
-    else:
-        criterion_t = nn.TripletMarginLoss()
+    # due to a problem I commented out these lines
+    #if cfg.ENABLE_TRIPLET_WITH_COSINE:
+        #criterion_t = cfg.TripletMarginLossCosine()
+    #else:
+    criterion_t = nn.TripletMarginLoss()
     print("build loss")
     triplet_loader_iter = iter(triplet_loader)
     print("triplet_loader")
@@ -77,14 +78,15 @@ def train(epoch):
             test()
         category=target['category']
         attribute=target['attribute']
-        data, category,attribute = data.cuda(cfg.GPU_ID), category.cuda(cfg.GPU_ID), attribute.cuda(cfg.GPU_ID)
-        data, category,attribute  = Variable(data), Variable(category),Variable(attribute)
+        data, category, attribute = data.cpu(), category.cpu(), attribute.cpu()
+        data, category, attribute  = Variable(data), Variable(category),Variable(attribute)
+
         print("get data")
         optimizer.zero_grad()
         output1 = model(data)[0]
-        output2=model(data)[1]
+        output2 = model(data)[1]
         classification_loss = criterion_c(output1, category)
-        attribute_loss = criterion_a(output2,attribute)
+        attribute_loss = criterion_a(output2, attribute)
         if cfg.TRIPLET_WEIGHT:
             print("use triplet")
             if cfg.ENABLE_INSHOP_DATASET and random.random() < cfg.INSHOP_DATASET_PRECENT:
@@ -103,7 +105,7 @@ def train(epoch):
                     data_tri_list = next(triplet_loader_iter)
             triplet_batch_size = data_tri_list[0].shape[0]
             data_tri = torch.cat(data_tri_list, 0)
-            data_tri = data_tri.cuda(cfg.GPU_ID)
+            data_tri = data_tri.cpu()
             data_tri = Variable(data_tri, requires_grad=True)
             feats = model(data_tri)[1]
             triplet_loss = criterion_t(
@@ -113,7 +115,7 @@ def train(epoch):
             )
             loss = classification_loss + triplet_loss * cfg.TRIPLET_WEIGHT+attribute_loss
         else:
-            loss = classification_loss+attribute_loss
+            loss = classification_loss + attribute_loss
         loss.backward()
         optimizer.step()
         if batch_idx % cfg.LOG_INTERVAL == 0:
@@ -141,10 +143,11 @@ def test():
     for batch_idx, (data, target) in enumerate(test_loader):
         category=target['category']
         attribute=target['attribute']
-        data, category,attribute = data.cuda(cfg.GPU_ID), category.cuda(cfg.GPU_ID), attribute.cuda(cfg.GPU_ID)
+        data, category,attribute = data.cpu(), category.cpu(), attribute.cpu()
         data, category,attribute  = Variable(data), Variable(category),Variable(attribute)
         output = model(data)[0]
-        test_loss += criterion(output, target).data[0]
+
+        test_loss += criterion(output, target['category']).data
         pred = output.data.max(1, keepdim=True)[1]
         print("predict class"+str(pred))
         correct += pred.eq(category.data.view_as(pred)).cpu().sum()
