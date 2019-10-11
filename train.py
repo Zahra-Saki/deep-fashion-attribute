@@ -79,12 +79,14 @@ def train(epoch):
         category=target['category']
         attribute=target['attribute']
         data, category, attribute = data.cpu(), category.cpu(), attribute.cpu()
-        data, category, attribute  = Variable(data), Variable(category),Variable(attribute)
+        data, category, attribute = Variable(data), Variable(category),Variable(attribute)
 
         print("get data")
         optimizer.zero_grad()
         output1 = model(data)[0]
         output2 = model(data)[1]
+        attribute = attribute.type(torch.FloatTensor)
+
         classification_loss = criterion_c(output1, category)
         attribute_loss = criterion_a(output2, attribute)
         if cfg.TRIPLET_WEIGHT:
@@ -128,7 +130,7 @@ def train(epoch):
             else:
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tClassification Loss: {:.4f}'.format(
                     epoch, batch_idx * len(data), len(train_loader.dataset),
-                           100. * batch_idx / len(train_loader), loss.data[0]))
+                           100. * batch_idx / len(train_loader), float(loss.data)))
         if batch_idx and batch_idx % cfg.DUMP_INTERVAL == 0:
             print('Model saved to {}'.format(dump_model(model, epoch, batch_idx)))
 

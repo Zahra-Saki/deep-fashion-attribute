@@ -10,15 +10,15 @@ from net import f_model, c_model, p_model
 import numpy as np
 
 print(cfg.DUMPED_MODEL)
-main_model = f_model(model_path=cfg.DUMPED_MODEL).cuda(cfg.GPU_ID)
-color_model = c_model().cuda(cfg.GPU_ID)
-pooling_model = p_model().cuda(cfg.GPU_ID)
+main_model = f_model(model_path=cfg.DUMPED_MODEL).cpu()
+color_model = c_model().cpu()
+pooling_model = p_model().cpu()
 extractor = FeatureExtractor(main_model, color_model, pooling_model)
 
 
 def dump_dataset(loader, deep_feats, color_feats, labels):
     for batch_idx, (data, data_path) in enumerate(loader):
-        data = Variable(data).cuda(cfg.GPU_ID)
+        data = Variable(data).cpu()
         deep_feat, color_feat = extractor(data)
         for i in range(len(data_path)):
             path = data_path[i]
