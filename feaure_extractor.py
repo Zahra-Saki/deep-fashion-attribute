@@ -3,7 +3,7 @@ import torch
 import os
 from myconfig import cfg
 #from utils import FeatureExtractor,data_transform_test
-from utils import*
+from utils import *
 from torch.autograd import Variable
 from data import Fashion_attr_prediction, Fashion_inshop
 from net import f_model, c_model, p_model

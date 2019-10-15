@@ -4,7 +4,7 @@
 from sklearn.cluster import KMeans
 from retrieval import load_feat_db
 from sklearn.externals import joblib
-from config import DATASET_BASE, N_CLUSTERS
+from myconfig import DATASET_BASE, N_CLUSTERS
 import os
 
 

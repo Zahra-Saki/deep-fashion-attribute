@@ -15,7 +15,7 @@ import torch
 
 #@timer_with_task("Loading model")
 def load_test_model():
-    if not os.path.isfile(cfg.DUMPED_MODEL) and not os.path.isfile(os.path.join(cfg.DATASET_BASE, "models", cfg.DUMPED_MODEL)):
+    if not os.path.isfile(cfg.DUMPED_MODEL) and not os.path.isfile(os.path.join(cfg.DATASET_BASE, "models_all_cate", cfg.DUMPED_MODEL)):
         print("No trained model file!")
         return
     main_model = f_model(model_path=cfg.DUMPED_MODEL).cuda(cfg.GPU_ID)
@@ -132,7 +132,7 @@ def visualize(original, result, cols=1):
 
 if __name__ == "__main__":
     #example = "img/Sheer_Pleated-Front_Blouse/img_00000005.jpg"
-    example = "test2.jpg"
+    example = "test1.jpg"
     if len(sys.argv) > 1 and sys.argv[1].endswith("jpg"):
         example = sys.argv[1]
     else:
